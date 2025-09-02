@@ -10,7 +10,7 @@ export interface PhysicalDisk {
   badSectors: number;
   powerOnHours: number;
   predictiveFailure: boolean;
-  lastChecked: Date;
+  lastChecked: Date | string;
 }
 
 export interface VirtualDisk {
@@ -22,7 +22,7 @@ export interface VirtualDisk {
   usedSpace: string;
   physicalDisks: string[];
   rebuildProgress?: number;
-  lastChecked: Date;
+  lastChecked: Date | string;
 }
 
 export interface RaidController {
@@ -33,7 +33,7 @@ export interface RaidController {
   batteryStatus: 'healthy' | 'warning' | 'failed';
   cacheSize: string;
   temperature: number;
-  lastChecked: Date;
+  lastChecked: Date | string;
 }
 
 export interface SystemAlert {
@@ -42,14 +42,14 @@ export interface SystemAlert {
   title: string;
   message: string;
   component: string;
-  timestamp: Date;
+  timestamp: Date | string;
   acknowledged: boolean;
 }
 
 export interface ServerStatus {
   serverName: string;
   ipAddress: string;
-  lastUpdate: Date;
+  lastUpdate: Date | string;
   connectionStatus: 'connected' | 'disconnected' | 'error';
   physicalDisks: PhysicalDisk[];
   virtualDisks: VirtualDisk[];

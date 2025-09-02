@@ -35,9 +35,10 @@ export function AlertsPanel({ alerts, onAcknowledge }: AlertsPanelProps) {
   const unacknowledgedAlerts = alerts.filter(alert => !alert.acknowledged);
   const acknowledgedAlerts = alerts.filter(alert => alert.acknowledged);
 
-  const formatTimestamp = (timestamp: Date) => {
+  const formatTimestamp = (timestamp: Date | string) => {
     const now = new Date();
-    const diffMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60));
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
     
     if (diffMinutes < 1) return 'Just now';
     if (diffMinutes < 60) return `${diffMinutes}m ago`;

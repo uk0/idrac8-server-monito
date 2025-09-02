@@ -82,7 +82,7 @@ export function VirtualDiskCard({ disk }: VirtualDiskCardProps) {
             <span>{disk.physicalDisks.length} physical disks</span>
           </div>
           <div className="mt-1 text-xs text-muted-foreground">
-            Last checked: {disk.lastChecked.toLocaleTimeString()}
+            Last checked: {(disk.lastChecked instanceof Date ? disk.lastChecked : new Date(disk.lastChecked)).toLocaleTimeString()}
           </div>
         </div>
       </CardContent>

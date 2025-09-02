@@ -108,7 +108,7 @@ export function ServerStatusHeader({ serverStatus, onRefresh, isRefreshing }: Se
           <div className="text-sm">
             <span className="text-muted-foreground">Last Update:</span>
             <span className="ml-2 font-mono">
-              {new Date(serverStatus.lastUpdate).toLocaleTimeString()}
+              {(serverStatus.lastUpdate instanceof Date ? serverStatus.lastUpdate : new Date(serverStatus.lastUpdate)).toLocaleTimeString()}
             </span>
           </div>
         </div>
