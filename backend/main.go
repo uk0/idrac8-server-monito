@@ -69,14 +69,14 @@ type SystemAlert struct {
 }
 
 type ServerStatus struct {
-	ServerName       string            `json:"serverName"`
-	IPAddress        string            `json:"ipAddress"`
-	LastUpdate       time.Time         `json:"lastUpdate"`
-	ConnectionStatus string            `json:"connectionStatus"`
-	PhysicalDisks    []PhysicalDisk    `json:"physicalDisks"`
-	VirtualDisks     []VirtualDisk     `json:"virtualDisks"`
-	RaidControllers  []RaidController  `json:"raidControllers"`
-	Alerts           []SystemAlert     `json:"alerts"`
+	ServerName       string           `json:"serverName"`
+	IPAddress        string           `json:"ipAddress"`
+	LastUpdate       time.Time        `json:"lastUpdate"`
+	ConnectionStatus string           `json:"connectionStatus"`
+	PhysicalDisks    []PhysicalDisk   `json:"physicalDisks"`
+	VirtualDisks     []VirtualDisk    `json:"virtualDisks"`
+	RaidControllers  []RaidController `json:"raidControllers"`
+	Alerts           []SystemAlert    `json:"alerts"`
 }
 
 // IDRAC API client
@@ -105,33 +105,26 @@ func NewIDRACClient(config IDRACConfig) *IDRACClient {
 // Authenticate with IDRAC and get session token
 func (c *IDRACClient) authenticate() error {
 	authURL := fmt.Sprintf("https://%s/redfish/v1/SessionService/Sessions", c.config.Host)
-	
-	authData := map[string]string{
-		"UserName": c.config.Username,
-		"Password": c.config.Password,
-	}
-	
-	authJSON, _ := json.Marshal(authData)
-	
+
 	req, err := http.NewRequest("POST", authURL, nil)
 	if err != nil {
 		return err
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(c.config.Username, c.config.Password)
-	
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode == 200 || resp.StatusCode == 201 {
 		c.token = resp.Header.Get("X-Auth-Token")
 		return nil
 	}
-	
+
 	return fmt.Errorf("authentication failed with status: %d", resp.StatusCode)
 }
 
@@ -145,30 +138,30 @@ func (c *IDRACClient) getPhysicalDisks() ([]PhysicalDisk, error) {
 
 	// IDRAC8 Redfish API endpoint for physical disks
 	url := fmt.Sprintf("https://%s/redfish/v1/Systems/System.Embedded.1/Storage", c.config.Host)
-	
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("X-Auth-Token", c.token)
 	req.Header.Set("Accept", "application/json")
-	
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	
+
 	// Parse the response and convert to our PhysicalDisk structure
 	// This is a simplified version - you'll need to adapt based on actual IDRAC8 API response
 	var disks []PhysicalDisk
-	
+
 	if members, ok := result["Members"].([]interface{}); ok {
 		for i, member := range members {
 			if memberMap, ok := member.(map[string]interface{}); ok {
@@ -190,7 +183,7 @@ func (c *IDRACClient) getPhysicalDisks() ([]PhysicalDisk, error) {
 			}
 		}
 	}
-	
+
 	return disks, nil
 }
 
@@ -203,28 +196,28 @@ func (c *IDRACClient) getVirtualDisks() ([]VirtualDisk, error) {
 	}
 
 	url := fmt.Sprintf("https://%s/redfish/v1/Systems/System.Embedded.1/Storage/Volumes", c.config.Host)
-	
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("X-Auth-Token", c.token)
 	req.Header.Set("Accept", "application/json")
-	
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	
+
 	var virtualDisks []VirtualDisk
-	
+
 	if members, ok := result["Members"].([]interface{}); ok {
 		for i, member := range members {
 			if memberMap, ok := member.(map[string]interface{}); ok {
@@ -234,7 +227,7 @@ func (c *IDRACClient) getVirtualDisks() ([]VirtualDisk, error) {
 					RaidLevel:     getStringValue(memberMap, "RAIDType"),
 					Status:        mapVirtualDiskStatus(getStringValue(memberMap, "Status.Health")),
 					Capacity:      getStringValue(memberMap, "CapacityBytes"),
-					UsedSpace:     "0", // Would need calculation
+					UsedSpace:     "0",        // Would need calculation
 					PhysicalDisks: []string{}, // Would need additional API call
 					LastChecked:   time.Now(),
 				}
@@ -242,7 +235,7 @@ func (c *IDRACClient) getVirtualDisks() ([]VirtualDisk, error) {
 			}
 		}
 	}
-	
+
 	return virtualDisks, nil
 }
 
@@ -255,28 +248,28 @@ func (c *IDRACClient) getRaidControllers() ([]RaidController, error) {
 	}
 
 	url := fmt.Sprintf("https://%s/redfish/v1/Systems/System.Embedded.1/Storage", c.config.Host)
-	
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("X-Auth-Token", c.token)
 	req.Header.Set("Accept", "application/json")
-	
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	
+
 	var controllers []RaidController
-	
+
 	// Parse RAID controller information from the storage response
 	if members, ok := result["Members"].([]interface{}); ok {
 		for i, member := range members {
@@ -295,17 +288,17 @@ func (c *IDRACClient) getRaidControllers() ([]RaidController, error) {
 			}
 		}
 	}
-	
+
 	return controllers, nil
 }
 
 // Get system alerts
 func (c *IDRACClient) getSystemAlerts() ([]SystemAlert, error) {
 	var alerts []SystemAlert
-	
+
 	// For now, generate alerts based on disk status
 	// In a real implementation, you'd query IDRAC event logs
-	
+
 	return alerts, nil
 }
 
@@ -366,40 +359,40 @@ func mapVirtualDiskStatus(idracStatus string) string {
 // HTTP handlers
 func getServerStatus(c *gin.Context) {
 	config := LoadConfig()
-	
+
 	idracConfig := IDRACConfig{
 		Host:     config.IDRACHost,
 		Username: config.IDRACUsername,
 		Password: config.IDRACPassword,
 	}
-	
+
 	client := NewIDRACClient(idracConfig)
-	
+
 	// Get all hardware information
 	physicalDisks, err := client.getPhysicalDisks()
 	if err != nil {
 		log.Printf("Error getting physical disks: %v", err)
 		physicalDisks = []PhysicalDisk{} // Return empty array on error
 	}
-	
+
 	virtualDisks, err := client.getVirtualDisks()
 	if err != nil {
 		log.Printf("Error getting virtual disks: %v", err)
 		virtualDisks = []VirtualDisk{}
 	}
-	
+
 	raidControllers, err := client.getRaidControllers()
 	if err != nil {
 		log.Printf("Error getting RAID controllers: %v", err)
 		raidControllers = []RaidController{}
 	}
-	
+
 	alerts, err := client.getSystemAlerts()
 	if err != nil {
 		log.Printf("Error getting alerts: %v", err)
 		alerts = []SystemAlert{}
 	}
-	
+
 	status := ServerStatus{
 		ServerName:       "Dell PowerEdge Server",
 		IPAddress:        idracConfig.Host,
@@ -410,16 +403,16 @@ func getServerStatus(c *gin.Context) {
 		RaidControllers:  raidControllers,
 		Alerts:           alerts,
 	}
-	
+
 	c.JSON(http.StatusOK, status)
 }
 
 func main() {
 	config := LoadConfig()
-	
+
 	// Create Gin router
 	r := gin.Default()
-	
+
 	// Configure CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"},
@@ -427,18 +420,18 @@ func main() {
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
 	}))
-	
+
 	// API routes
 	api := r.Group("/api/v1")
 	{
 		api.GET("/server/status", getServerStatus)
 	}
-	
+
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
-	
+
 	log.Printf("Starting IDRAC8 Monitor API server on :%s", config.ServerPort)
 	log.Printf("Monitoring IDRAC at: %s", config.IDRACHost)
 	log.Fatal(r.Run(":" + config.ServerPort))

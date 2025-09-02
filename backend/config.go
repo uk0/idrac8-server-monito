@@ -17,11 +17,11 @@ func LoadConfig() Config {
 	config := Config{
 		IDRACHost:     getEnv("IDRAC_HOST", "10.88.51.66"),
 		IDRACUsername: getEnv("IDRAC_USERNAME", "root"),
-		IDRACPassword: getEnv("IDRAC_PASSWORD", "calvin"),
+		IDRACPassword: getEnv("IDRAC_PASSWORD", "uh-WYoKv_p8zeM!t"),
 		PollInterval:  getEnvAsInt("POLL_INTERVAL", 300000), // 5 minutes in milliseconds
 		ServerPort:    getEnv("SERVER_PORT", "8080"),
 	}
-	
+
 	return config
 }
 
