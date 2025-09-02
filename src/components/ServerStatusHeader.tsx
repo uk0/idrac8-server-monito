@@ -11,32 +11,10 @@ interface ServerStatusHeaderProps {
 }
 
 export function ServerStatusHeader({ serverStatus, onRefresh, isRefreshing }: ServerStatusHeaderProps) {
-  const getConnectionStatusColor = (status: ServerStatus['connectionStatus']) => {
-    switch (status) {
-      case 'connected':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'disconnected':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'error':
-        return 'bg-red-100 text-red-800 border-red-200';
-    }
-  };
-
-  const getConnectionIcon = (status: ServerStatus['connectionStatus']) => {
-    switch (status) {
-      case 'connected':
-        return <Circle className="h-3 w-3 fill-green-600 text-green-600" />;
-      case 'disconnected':
-        return <Circle className="h-3 w-3 fill-gray-600 text-gray-600" />;
-      case 'error':
-        return <Circle className="h-3 w-3 fill-red-600 text-red-600" />;
-    }
-  };
-
   const getOverallHealth = () => {
     const criticalDisks = serverStatus.physicalDisks.filter(disk => disk.status === 'critical' || disk.status === 'failed').length;
     const warningDisks = serverStatus.physicalDisks.filter(disk => disk.status === 'warning').length;
-    const degradedVDisks = serverStatus.virtualDisks.filter(vd => vd.status === 'degraded' || vd.status === 'failed').length;
+    const degradedVDisks = serverStatus.virtualDisks.filter(vd => vd.status === 'critical' || vd.status === 'failed').length;
     const criticalAlerts = serverStatus.alerts.filter(alert => alert.severity === 'critical' && !alert.acknowledged).length;
 
     if (criticalDisks > 0 || degradedVDisks > 0 || criticalAlerts > 0) {
@@ -57,14 +35,13 @@ export function ServerStatusHeader({ serverStatus, onRefresh, isRefreshing }: Se
           <div className="flex items-center gap-3">
             <Server className="h-6 w-6" />
             <div>
-              <CardTitle className="text-2xl">{serverStatus.serverName}</CardTitle>
+              <CardTitle className="text-2xl">{serverStatus.serverInfo.name}</CardTitle>
               <div className="flex items-center gap-2 mt-1">
-                <Wifi className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">{serverStatus.ipAddress}</span>
+                <span className="text-sm text-muted-foreground">{serverStatus.serverInfo.model}</span>
                 <div className="flex items-center gap-1">
-                  {getConnectionIcon(serverStatus.connectionStatus)}
-                  <Badge className={getConnectionStatusColor(serverStatus.connectionStatus)}>
-                    {serverStatus.connectionStatus.toUpperCase()}
+                  <Circle className="h-3 w-3 fill-green-600 text-green-600" />
+                  <Badge className="bg-green-100 text-green-800 border-green-200">
+                    CONNECTED
                   </Badge>
                 </div>
               </div>
@@ -108,7 +85,7 @@ export function ServerStatusHeader({ serverStatus, onRefresh, isRefreshing }: Se
           <div className="text-sm">
             <span className="text-muted-foreground">Last Update:</span>
             <span className="ml-2 font-mono">
-              {(serverStatus.lastUpdate instanceof Date ? serverStatus.lastUpdate : new Date(serverStatus.lastUpdate)).toLocaleTimeString()}
+              {new Date(serverStatus.lastRefresh).toLocaleTimeString()}
             </span>
           </div>
         </div>

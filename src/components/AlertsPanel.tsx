@@ -35,9 +35,9 @@ export function AlertsPanel({ alerts, onAcknowledge }: AlertsPanelProps) {
   const unacknowledgedAlerts = alerts.filter(alert => !alert.acknowledged);
   const acknowledgedAlerts = alerts.filter(alert => alert.acknowledged);
 
-  const formatTimestamp = (timestamp: Date | string) => {
+  const formatTimestamp = (timestamp: string) => {
     const now = new Date();
-    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    const date = new Date(timestamp);
     const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
     
     if (diffMinutes < 1) return 'Just now';
@@ -87,7 +87,6 @@ export function AlertsPanel({ alerts, onAcknowledge }: AlertsPanelProps) {
                   {getSeverityIcon(alert.severity)}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-sm">{alert.title}</h4>
                       <Badge className={getSeverityColor(alert.severity)}>
                         {alert.severity.toUpperCase()}
                       </Badge>
@@ -95,7 +94,6 @@ export function AlertsPanel({ alerts, onAcknowledge }: AlertsPanelProps) {
                     <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>Component: {alert.component}</span>
                         <span>{formatTimestamp(alert.timestamp)}</span>
                       </div>
                       <Button
@@ -120,7 +118,7 @@ export function AlertsPanel({ alerts, onAcknowledge }: AlertsPanelProps) {
                     <div className="flex items-start gap-3">
                       <Check className="h-4 w-4 text-green-600 mt-0.5" />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm">{alert.title}</h4>
+                        <p className="font-medium text-sm">{alert.message}</p>
                         <p className="text-xs text-muted-foreground">{formatTimestamp(alert.timestamp)}</p>
                       </div>
                     </div>

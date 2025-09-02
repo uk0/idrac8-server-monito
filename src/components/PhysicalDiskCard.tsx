@@ -18,20 +18,23 @@ export function PhysicalDiskCard({ disk }: PhysicalDiskCardProps) {
         return 'bg-red-100 text-red-800 border-red-200';
       case 'failed':
         return 'bg-red-100 text-red-800 border-red-200';
+      case 'offline':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getTemperatureColor = (temp: number) => {
-    if (temp < 40) return 'text-green-600';
-    if (temp < 50) return 'text-yellow-600';
-    return 'text-red-600';
+  const formatValue = (value: string | number): string => {
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return value.toString();
+    return 'N/A';
   };
 
-  const formatUptime = (hours: number) => {
-    const days = Math.floor(hours / 24);
-    return `${days} days`;
+  const getTemperatureDisplay = () => {
+    const temp = formatValue(disk.temperature);
+    if (temp === 'N/A') return temp;
+    return temp.includes('°') ? temp : `${temp}°C`;
   };
 
   return (
@@ -54,43 +57,49 @@ export function PhysicalDiskCard({ disk }: PhysicalDiskCardProps) {
             <p className="font-mono">{disk.model}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">Capacity:</span>
-            <p className="font-mono">{disk.capacity}</p>
+            <span className="text-muted-foreground">Size:</span>
+            <p className="font-mono">{disk.size}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Serial:</span>
             <p className="font-mono text-xs">{disk.serialNumber}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">SMART:</span>
-            <p className={`font-mono ${disk.smartStatus === 'passed' ? 'text-green-600' : 'text-red-600'}`}>
-              {disk.smartStatus.toUpperCase()}
-            </p>
+            <span className="text-muted-foreground">Interface:</span>
+            <p className="font-mono">{disk.interface}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Manufacturer:</span>
+            <p className="font-mono">{disk.manufacturer}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Type:</span>
+            <p className="font-mono">{disk.mediaType}</p>
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex items-center gap-1 text-sm">
-            <Thermometer className={`h-4 w-4 ${getTemperatureColor(disk.temperature)}`} />
-            <span className={getTemperatureColor(disk.temperature)}>{disk.temperature}°C</span>
+            <Thermometer className="h-4 w-4" />
+            <span>{getTemperatureDisplay()}</span>
           </div>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
-            <span>{formatUptime(disk.powerOnHours)}</span>
+            <span>{formatValue(disk.powerOnHours)} hrs</span>
           </div>
         </div>
 
-        {disk.badSectors > 0 && (
-          <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-md border border-yellow-200">
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
-            <span className="text-sm text-yellow-800">{disk.badSectors} bad sectors detected</span>
+        {disk.location && disk.location !== 'Unknown' && (
+          <div className="text-sm">
+            <span className="text-muted-foreground">Location:</span>
+            <span className="ml-2 font-mono">{disk.location}</span>
           </div>
         )}
 
-        {disk.predictiveFailure && (
-          <div className="flex items-center gap-2 p-2 bg-red-50 rounded-md border border-red-200">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <span className="text-sm text-red-800 font-medium">Predictive failure detected</span>
+        {typeof disk.predictiveFailure === 'number' && disk.predictiveFailure < 50 && (
+          <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-md border border-yellow-200">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <span className="text-sm text-yellow-800">Media life: {disk.predictiveFailure}% remaining</span>
           </div>
         )}
       </CardContent>

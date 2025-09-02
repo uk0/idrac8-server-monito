@@ -1,6 +1,6 @@
 import { ServerStatus } from '@/types/hardware';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = 'http://localhost:8000/api';
 
 export class ServerAPI {
   private static instance: ServerAPI;
@@ -29,27 +29,8 @@ export class ServerAPI {
       
       const data = await response.json();
       
-      // Convert string dates back to Date objects
-      return {
-        ...data,
-        lastUpdate: new Date(data.lastUpdate),
-        physicalDisks: data.physicalDisks.map((disk: any) => ({
-          ...disk,
-          lastChecked: new Date(disk.lastChecked),
-        })),
-        virtualDisks: data.virtualDisks.map((disk: any) => ({
-          ...disk,
-          lastChecked: new Date(disk.lastChecked),
-        })),
-        raidControllers: data.raidControllers.map((controller: any) => ({
-          ...controller,
-          lastChecked: new Date(controller.lastChecked),
-        })),
-        alerts: data.alerts.map((alert: any) => ({
-          ...alert,
-          timestamp: new Date(alert.timestamp),
-        })),
-      };
+      // Return data as-is since Python backend provides the correct format
+      return data;
     } catch (error) {
       console.error('Failed to fetch server status:', error);
       throw error;
@@ -58,7 +39,7 @@ export class ServerAPI {
   
   async checkConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL.replace('/api/v1', '')}/health`, {
+      const response = await fetch(`${API_BASE_URL}/health`, {
         method: 'GET',
       });
       return response.ok;

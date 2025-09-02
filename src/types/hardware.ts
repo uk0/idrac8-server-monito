@@ -3,56 +3,48 @@ export interface PhysicalDisk {
   name: string;
   model: string;
   serialNumber: string;
-  capacity: string;
-  status: 'healthy' | 'warning' | 'critical' | 'failed';
-  temperature: number;
-  smartStatus: 'passed' | 'failed';
-  badSectors: number;
-  powerOnHours: number;
-  predictiveFailure: boolean;
-  lastChecked: Date | string;
+  size: string;
+  status: 'healthy' | 'warning' | 'critical' | 'failed' | 'offline' | 'unknown';
+  interface: string;
+  manufacturer: string;
+  mediaType: string;
+  location: string;
+  temperature: string | number;
+  powerOnHours: string | number;
+  predictiveFailure: string | number;
+  lastUpdated: string;
 }
 
 export interface VirtualDisk {
   id: string;
   name: string;
   raidLevel: string;
-  status: 'optimal' | 'degraded' | 'failed' | 'rebuilding';
-  capacity: string;
-  usedSpace: string;
-  physicalDisks: string[];
-  rebuildProgress?: number;
-  lastChecked: Date | string;
-}
-
-export interface RaidController {
-  id: string;
-  name: string;
-  model: string;
-  status: 'healthy' | 'warning' | 'critical';
-  batteryStatus: 'healthy' | 'warning' | 'failed';
-  cacheSize: string;
-  temperature: number;
-  lastChecked: Date | string;
+  status: 'healthy' | 'warning' | 'critical' | 'failed' | 'offline' | 'unknown';
+  size: string;
+  lastUpdated: string;
 }
 
 export interface SystemAlert {
   id: string;
   severity: 'info' | 'warning' | 'critical';
-  title: string;
   message: string;
-  component: string;
-  timestamp: Date | string;
+  timestamp: string;
   acknowledged: boolean;
 }
 
+export interface ServerInfo {
+  name: string;
+  model: string;
+  manufacturer: string;
+  serialNumber: string;
+  powerState: string;
+  lastUpdated: string;
+}
+
 export interface ServerStatus {
-  serverName: string;
-  ipAddress: string;
-  lastUpdate: Date | string;
-  connectionStatus: 'connected' | 'disconnected' | 'error';
+  serverInfo: ServerInfo;
   physicalDisks: PhysicalDisk[];
   virtualDisks: VirtualDisk[];
-  raidControllers: RaidController[];
   alerts: SystemAlert[];
+  lastRefresh: string;
 }
