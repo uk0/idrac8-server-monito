@@ -33,6 +33,30 @@ function App() {
       console.error('Failed to fetch server data:', error);
       setConnectionError(true);
       
+      // Set a default structure to prevent undefined errors only if no data exists
+      if (!serverData) {
+        setServerData({
+          serverInfo: {
+            name: 'IDRAC8 Server',
+            model: 'Connection Failed',
+            manufacturer: 'Dell',
+            serialNumber: 'N/A',
+            powerState: 'Unknown',
+            lastUpdated: new Date().toISOString()
+          },
+          physicalDisks: [],
+          virtualDisks: [],
+          alerts: [{
+            id: 'connection-error',
+            severity: 'critical' as const,
+            message: 'Unable to connect to IDRAC8 server. Please check network connectivity and backend service.',
+            timestamp: new Date().toISOString(),
+            acknowledged: false
+          }],
+          lastRefresh: new Date().toISOString()
+        });
+      }
+      
       if (showToast) {
         toast.error('Failed to connect to IDRAC8 server. Please check the backend service.');
       }
@@ -60,7 +84,7 @@ function App() {
   };
 
   const handleAcknowledgeAlert = (alertId: string) => {
-    if (!serverData) return;
+    if (!serverData || !serverData.alerts) return;
     
     setServerData({
       ...serverData,
@@ -93,13 +117,13 @@ function App() {
     );
   }
 
-  const criticalDisks = serverData.physicalDisks.filter(disk => 
+  const criticalDisks = (serverData.physicalDisks || []).filter(disk => 
     disk.status === 'critical' || disk.status === 'failed'
   );
-  const warningDisks = serverData.physicalDisks.filter(disk => 
+  const warningDisks = (serverData.physicalDisks || []).filter(disk => 
     disk.status === 'warning'
   );
-  const healthyDisks = serverData.physicalDisks.filter(disk => 
+  const healthyDisks = (serverData.physicalDisks || []).filter(disk => 
     disk.status === 'healthy'
   );
 
@@ -123,7 +147,7 @@ function App() {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AlertsPanel 
-                alerts={serverData.alerts}
+                alerts={serverData.alerts || []}
                 onAcknowledge={handleAcknowledgeAlert}
               />
               
@@ -174,11 +198,11 @@ function App() {
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Physical Disks</h3>
               <div className="text-sm text-muted-foreground">
-                {serverData.physicalDisks.length} disks total
+                {(serverData.physicalDisks || []).length} disks total
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {serverData.physicalDisks.map(disk => (
+              {(serverData.physicalDisks || []).map(disk => (
                 <PhysicalDiskCard key={disk.id} disk={disk} />
               ))}
             </div>
@@ -188,11 +212,11 @@ function App() {
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Virtual Disks & RAID Arrays</h3>
               <div className="text-sm text-muted-foreground">
-                {serverData.virtualDisks.length} virtual disks configured
+                {(serverData.virtualDisks || []).length} virtual disks configured
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {serverData.virtualDisks.map(disk => (
+              {(serverData.virtualDisks || []).map(disk => (
                 <VirtualDiskCard key={disk.id} disk={disk} />
               ))}
             </div>
@@ -200,7 +224,7 @@ function App() {
 
           <TabsContent value="alerts" className="space-y-6">
             <AlertsPanel 
-              alerts={serverData.alerts}
+              alerts={serverData.alerts || []}
               onAcknowledge={handleAcknowledgeAlert}
             />
           </TabsContent>

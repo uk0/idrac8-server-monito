@@ -11,11 +11,24 @@ interface ServerStatusHeaderProps {
 }
 
 export function ServerStatusHeader({ serverStatus, onRefresh, isRefreshing }: ServerStatusHeaderProps) {
+  // Safely handle potentially undefined data with comprehensive fallbacks
+  const physicalDisks = serverStatus?.physicalDisks || [];
+  const virtualDisks = serverStatus?.virtualDisks || [];
+  const alerts = serverStatus?.alerts || [];
+  const serverInfo = serverStatus?.serverInfo || {
+    name: 'IDRAC8 Server',
+    model: 'Unknown Model',
+    manufacturer: 'Dell',
+    serialNumber: 'N/A',
+    powerState: 'Unknown',
+    lastUpdated: new Date().toISOString()
+  };
+
   const getOverallHealth = () => {
-    const criticalDisks = serverStatus.physicalDisks.filter(disk => disk.status === 'critical' || disk.status === 'failed').length;
-    const warningDisks = serverStatus.physicalDisks.filter(disk => disk.status === 'warning').length;
-    const degradedVDisks = serverStatus.virtualDisks.filter(vd => vd.status === 'critical' || vd.status === 'failed').length;
-    const criticalAlerts = serverStatus.alerts.filter(alert => alert.severity === 'critical' && !alert.acknowledged).length;
+    const criticalDisks = physicalDisks.filter(disk => disk.status === 'critical' || disk.status === 'failed').length;
+    const warningDisks = physicalDisks.filter(disk => disk.status === 'warning').length;
+    const degradedVDisks = virtualDisks.filter(vd => vd.status === 'critical' || vd.status === 'failed').length;
+    const criticalAlerts = alerts.filter(alert => alert.severity === 'critical' && !alert.acknowledged).length;
 
     if (criticalDisks > 0 || degradedVDisks > 0 || criticalAlerts > 0) {
       return { status: 'critical', label: 'Critical Issues Detected' };
@@ -35,9 +48,9 @@ export function ServerStatusHeader({ serverStatus, onRefresh, isRefreshing }: Se
           <div className="flex items-center gap-3">
             <Server className="h-6 w-6" />
             <div>
-              <CardTitle className="text-2xl">{serverStatus.serverInfo.name}</CardTitle>
+              <CardTitle className="text-2xl">{serverInfo.name || 'IDRAC8 Server'}</CardTitle>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-muted-foreground">{serverStatus.serverInfo.model}</span>
+                <span className="text-sm text-muted-foreground">{serverInfo.model || 'Unknown Model'}</span>
                 <div className="flex items-center gap-1">
                   <Circle className="h-3 w-3 fill-green-600 text-green-600" />
                   <Badge className="bg-green-100 text-green-800 border-green-200">
@@ -76,16 +89,16 @@ export function ServerStatusHeader({ serverStatus, onRefresh, isRefreshing }: Se
           </div>
           <div className="text-sm">
             <span className="text-muted-foreground">Physical Disks:</span>
-            <span className="ml-2 font-mono">{serverStatus.physicalDisks.length}</span>
+            <span className="ml-2 font-mono">{physicalDisks.length}</span>
           </div>
           <div className="text-sm">
             <span className="text-muted-foreground">Virtual Disks:</span>
-            <span className="ml-2 font-mono">{serverStatus.virtualDisks.length}</span>
+            <span className="ml-2 font-mono">{virtualDisks.length}</span>
           </div>
           <div className="text-sm">
             <span className="text-muted-foreground">Last Update:</span>
             <span className="ml-2 font-mono">
-              {new Date(serverStatus.lastRefresh).toLocaleTimeString()}
+              {new Date(serverStatus?.lastRefresh || Date.now()).toLocaleTimeString()}
             </span>
           </div>
         </div>

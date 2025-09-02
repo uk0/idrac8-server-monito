@@ -9,6 +9,16 @@ interface VirtualDiskCardProps {
 }
 
 export function VirtualDiskCard({ disk }: VirtualDiskCardProps) {
+  // Ensure disk has all required properties with fallbacks
+  const safeDisk = {
+    id: disk?.id || 'unknown',
+    name: disk?.name || 'Unknown Virtual Disk',
+    raidLevel: disk?.raidLevel || 'Unknown',
+    status: disk?.status || 'unknown' as const,
+    size: disk?.size || 'Unknown',
+    lastUpdated: disk?.lastUpdated || new Date().toISOString()
+  };
+
   const getStatusColor = (status: VirtualDisk['status']) => {
     switch (status) {
       case 'healthy':
@@ -32,10 +42,10 @@ export function VirtualDiskCard({ disk }: VirtualDiskCardProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <Database className="h-5 w-5" />
-            {disk.name}
+            {safeDisk.name}
           </CardTitle>
-          <Badge className={getStatusColor(disk.status)}>
-            {disk.status.toUpperCase()}
+          <Badge className={getStatusColor(safeDisk.status)}>
+            {safeDisk.status.toUpperCase()}
           </Badge>
         </div>
       </CardHeader>
@@ -43,17 +53,17 @@ export function VirtualDiskCard({ disk }: VirtualDiskCardProps) {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-muted-foreground">RAID Level:</span>
-            <p className="font-mono font-medium">{disk.raidLevel}</p>
+            <p className="font-mono font-medium">{safeDisk.raidLevel}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Total Size:</span>
-            <p className="font-mono">{disk.size}</p>
+            <p className="font-mono">{safeDisk.size}</p>
           </div>
         </div>
 
         <div className="pt-2 border-t">
           <div className="text-xs text-muted-foreground">
-            Last updated: {new Date(disk.lastUpdated).toLocaleTimeString()}
+            Last updated: {new Date(safeDisk.lastUpdated).toLocaleTimeString()}
           </div>
         </div>
       </CardContent>

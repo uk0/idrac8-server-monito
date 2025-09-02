@@ -8,6 +8,24 @@ interface PhysicalDiskCardProps {
 }
 
 export function PhysicalDiskCard({ disk }: PhysicalDiskCardProps) {
+  // Ensure disk has all required properties with fallbacks
+  const safeDisk = {
+    id: disk?.id || 'unknown',
+    name: disk?.name || 'Unknown Disk',
+    model: disk?.model || 'Unknown',
+    serialNumber: disk?.serialNumber || 'N/A',
+    size: disk?.size || 'Unknown',
+    status: disk?.status || 'unknown' as const,
+    interface: disk?.interface || 'Unknown',
+    manufacturer: disk?.manufacturer || 'Unknown',
+    mediaType: disk?.mediaType || 'Unknown',
+    location: disk?.location || 'Unknown',
+    temperature: disk?.temperature || 'N/A',
+    powerOnHours: disk?.powerOnHours || 'N/A',
+    predictiveFailure: disk?.predictiveFailure || 'N/A',
+    lastUpdated: disk?.lastUpdated || new Date().toISOString()
+  };
+
   const getStatusColor = (status: PhysicalDisk['status']) => {
     switch (status) {
       case 'healthy':
@@ -32,7 +50,7 @@ export function PhysicalDiskCard({ disk }: PhysicalDiskCardProps) {
   };
 
   const getTemperatureDisplay = () => {
-    const temp = formatValue(disk.temperature);
+    const temp = formatValue(safeDisk.temperature);
     if (temp === 'N/A') return temp;
     return temp.includes('°') ? temp : `${temp}°C`;
   };
@@ -43,10 +61,10 @@ export function PhysicalDiskCard({ disk }: PhysicalDiskCardProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <HardDrive className="h-5 w-5" />
-            {disk.name}
+            {safeDisk.name}
           </CardTitle>
-          <Badge className={getStatusColor(disk.status)}>
-            {disk.status.toUpperCase()}
+          <Badge className={getStatusColor(safeDisk.status)}>
+            {safeDisk.status.toUpperCase()}
           </Badge>
         </div>
       </CardHeader>
@@ -54,27 +72,27 @@ export function PhysicalDiskCard({ disk }: PhysicalDiskCardProps) {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-muted-foreground">Model:</span>
-            <p className="font-mono">{disk.model}</p>
+            <p className="font-mono">{safeDisk.model}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Size:</span>
-            <p className="font-mono">{disk.size}</p>
+            <p className="font-mono">{safeDisk.size}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Serial:</span>
-            <p className="font-mono text-xs">{disk.serialNumber}</p>
+            <p className="font-mono text-xs">{safeDisk.serialNumber}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Interface:</span>
-            <p className="font-mono">{disk.interface}</p>
+            <p className="font-mono">{safeDisk.interface}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Manufacturer:</span>
-            <p className="font-mono">{disk.manufacturer}</p>
+            <p className="font-mono">{safeDisk.manufacturer}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Type:</span>
-            <p className="font-mono">{disk.mediaType}</p>
+            <p className="font-mono">{safeDisk.mediaType}</p>
           </div>
         </div>
 
@@ -85,21 +103,21 @@ export function PhysicalDiskCard({ disk }: PhysicalDiskCardProps) {
           </div>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
-            <span>{formatValue(disk.powerOnHours)} hrs</span>
+            <span>{formatValue(safeDisk.powerOnHours)} hrs</span>
           </div>
         </div>
 
-        {disk.location && disk.location !== 'Unknown' && (
+        {safeDisk.location && safeDisk.location !== 'Unknown' && (
           <div className="text-sm">
             <span className="text-muted-foreground">Location:</span>
-            <span className="ml-2 font-mono">{disk.location}</span>
+            <span className="ml-2 font-mono">{safeDisk.location}</span>
           </div>
         )}
 
-        {typeof disk.predictiveFailure === 'number' && disk.predictiveFailure < 50 && (
+        {typeof safeDisk.predictiveFailure === 'number' && safeDisk.predictiveFailure < 50 && (
           <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-md border border-yellow-200">
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
-            <span className="text-sm text-yellow-800">Media life: {disk.predictiveFailure}% remaining</span>
+            <span className="text-sm text-yellow-800">Media life: {safeDisk.predictiveFailure}% remaining</span>
           </div>
         )}
       </CardContent>
