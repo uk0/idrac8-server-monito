@@ -9,7 +9,13 @@
         "build": "tsc -b --noCheck && vite build",
         "lint": "eslint .",
         "optimize": "vite optimize",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "backend": "cd backend && go run main.go config.go",
+        "backend:build": "cd backend && go build -o idrac-monitor main.go config.go",
+        "start:backend": "cd backend && ./idrac-monitor",
+        "docker:build": "docker-compose build",
+        "docker:up": "docker-compose up -d",
+        "docker:down": "docker-compose down"
     },
     "dependencies": {
         "@github/spark": "^0.39.0",

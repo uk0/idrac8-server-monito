@@ -4,48 +4,94 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { ServerStatus } from '@/types/hardware';
-import { generateMockServerData, updateServerData } from '@/lib/mockData';
+import { ServerAPI } from '@/lib/api';
 import { ServerStatusHeader } from '@/components/ServerStatusHeader';
 import { PhysicalDiskCard } from '@/components/PhysicalDiskCard';
 import { VirtualDiskCard } from '@/components/VirtualDiskCard';
 import { AlertsPanel } from '@/components/AlertsPanel';
 
 function App() {
-  const [serverData, setServerData] = useKV<ServerStatus>('server-data', generateMockServerData());
+  const [serverData, setServerData] = useKV<ServerStatus | null>('server-data', null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [connectionError, setConnectionError] = useState(false);
+  
+  const api = ServerAPI.getInstance();
+
+  // Function to fetch server data
+  const fetchServerData = async (showToast = true) => {
+    try {
+      setConnectionError(false);
+      const data = await api.getServerStatus();
+      setServerData(data);
+      setLastRefresh(Date.now());
+      
+      if (showToast) {
+        toast.success('Hardware status updated from IDRAC8');
+      }
+    } catch (error) {
+      console.error('Failed to fetch server data:', error);
+      setConnectionError(true);
+      
+      if (showToast) {
+        toast.error('Failed to connect to IDRAC8 server. Please check the backend service.');
+      }
+    }
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchServerData(false);
+  }, []);
 
   // Auto-refresh every 5 minutes (300,000 ms)
   useEffect(() => {
     const interval = setInterval(() => {
-      setServerData(currentData => updateServerData(currentData));
-      setLastRefresh(Date.now());
-      toast.info('Hardware status updated automatically');
+      fetchServerData(true);
     }, 300000); // 5 minutes
 
     return () => clearInterval(interval);
-  }, [setServerData]);
+  }, []);
 
-  const handleManualRefresh = () => {
+  const handleManualRefresh = async () => {
     setIsRefreshing(true);
-    // Simulate API call delay
-    setTimeout(() => {
-      setServerData(currentData => updateServerData(currentData));
-      setLastRefresh(Date.now());
-      setIsRefreshing(false);
-      toast.success('Hardware status refreshed');
-    }, 1500);
+    await fetchServerData(true);
+    setIsRefreshing(false);
   };
 
   const handleAcknowledgeAlert = (alertId: string) => {
-    setServerData(currentData => ({
-      ...currentData,
-      alerts: currentData.alerts.map(alert =>
+    if (!serverData) return;
+    
+    setServerData({
+      ...serverData,
+      alerts: serverData.alerts.map(alert =>
         alert.id === alertId ? { ...alert, acknowledged: true } : alert
       )
-    }));
+    });
     toast.success('Alert acknowledged');
   };
+
+  // Show loading state if no data yet
+  if (!serverData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">
+            {connectionError ? 'Failed to connect to IDRAC8 server' : 'Connecting to IDRAC8...'}
+          </p>
+          {connectionError && (
+            <button 
+              onClick={() => fetchServerData(true)}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            >
+              Retry Connection
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const criticalDisks = serverData.physicalDisks.filter(disk => 
     disk.status === 'critical' || disk.status === 'failed'

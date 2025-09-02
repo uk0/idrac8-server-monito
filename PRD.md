@@ -1,52 +1,96 @@
 # IDRAC8 Server Hardware Monitor
 
-Monitor physical disk health, RAID configuration, and virtual disk status for Dell IDRAC8 servers with real-time alerts and automated health checks.
+Real-time monitoring solution for Dell PowerEdge servers with IDRAC8, providing comprehensive hardware status monitoring through direct IDRAC API integration with automatic polling and predictive failure detection.
 
 **Experience Qualities**:
-1. **Reliable** - Critical system monitoring requires unwavering accuracy and immediate alert visibility
-2. **Professional** - Enterprise-grade interface that instills confidence in system administrators
-3. **Efficient** - Streamlined workflows that enable quick assessment and decision-making during critical situations
+1. **Reliable** - Direct API integration with IDRAC8 ensures accurate real-time hardware status
+2. **Professional** - Enterprise-grade interface designed for system administrators and datacenter operations
+3. **Efficient** - Automated monitoring with intelligent alerting reduces manual checks and prevents downtime
 
-**Complexity Level**: Light Application (multiple features with basic state)
-- Displays real-time hardware status with automated refresh cycles, basic alerting system, and data persistence for historical tracking
+**Complexity Level**: Complex Application (advanced functionality, real-time API integration)
+- Features comprehensive IDRAC8 API integration, real-time hardware monitoring, automated polling, alert management, and historical data tracking with backend service architecture
+
+## Technical Architecture
+
+### Backend Service (Go)
+- **Functionality**: RESTful API service that communicates directly with IDRAC8 via Redfish API
+- **Purpose**: Provides secure, reliable interface between frontend and IDRAC8 hardware
+- **Integration**: Direct IDRAC8 Redfish API calls for real-time hardware data
+- **Features**: Session management, error handling, data transformation, health checks
+
+### Frontend Application (React)
+- **Functionality**: Real-time dashboard displaying hardware status and alerts
+- **Purpose**: Provides intuitive interface for monitoring and managing server hardware
+- **Integration**: Consumes backend API for live hardware data
+- **Features**: Auto-refresh, manual refresh, alert management, responsive design
 
 ## Essential Features
 
+### Direct IDRAC8 API Integration
+- **Functionality**: Connects to IDRAC8 at 10.88.51.66 using Redfish API for real-time hardware data
+- **Purpose**: Provides authentic, live hardware status without simulation or mock data
+- **Trigger**: Automatic connection on service startup with authenticated sessions
+- **Progression**: Service starts → IDRAC authentication → API endpoint discovery → Data polling begins → Frontend receives real data
+- **Success criteria**: Successfully authenticate and retrieve live hardware data from IDRAC8
+
 ### Real-time Hardware Status Display
-- **Functionality**: Shows current status of all physical disks, RAID arrays, and virtual disks
-- **Purpose**: Provides immediate visibility into hardware health to prevent data loss
+- **Functionality**: Shows current status of all physical disks, RAID arrays, and virtual disks from actual IDRAC data
+- **Purpose**: Provides immediate visibility into actual hardware health to prevent data loss
 - **Trigger**: Automatic page load and 5-minute refresh intervals
-- **Progression**: Dashboard loads → Hardware data fetches → Status cards populate → Health indicators display → Alerts highlight issues
-- **Success criteria**: All hardware components show current status with clear health indicators
+- **Progression**: Dashboard loads → Backend API called → IDRAC queried → Hardware data returned → Status cards populate → Health indicators display
+- **Success criteria**: All hardware components show live status with accurate health indicators from IDRAC8
 
-### Automated Health Monitoring
-- **Functionality**: Continuously monitors disk health parameters and RAID status
-- **Purpose**: Proactive identification of failing hardware before critical failure
-- **Trigger**: Automated 5-minute polling cycle
-- **Progression**: Timer triggers → API call executes → Data comparison occurs → Status updates → Alerts generate if needed
-- **Success criteria**: System accurately detects and reports hardware issues within monitoring window
+### Automated Health Monitoring with IDRAC Polling
+- **Functionality**: Continuously polls IDRAC8 every 5 minutes for hardware health parameters
+- **Purpose**: Proactive identification of failing hardware through direct IDRAC SMART data and sensor readings
+- **Trigger**: Automated 5-minute polling cycle managed by Go backend service
+- **Progression**: Timer triggers → IDRAC API called → Hardware data retrieved → Status comparison → Database updated → Frontend notified
+- **Success criteria**: System accurately detects and reports actual hardware issues from IDRAC within monitoring window
 
-### Alert Management System
-- **Functionality**: Displays critical, warning, and informational alerts with timestamp tracking
-- **Purpose**: Ensures immediate awareness of hardware issues requiring attention
-- **Trigger**: Hardware status change detection or manual alert review
-- **Progression**: Issue detected → Alert generated → Dashboard notification → Admin review → Action taken or acknowledged
-- **Success criteria**: All critical issues generate immediate visible alerts with clear action guidance
+### Enterprise Alert Management System
+- **Functionality**: Generates alerts based on actual IDRAC hardware status and event logs
+- **Purpose**: Ensures immediate awareness of real hardware issues requiring attention
+- **Trigger**: IDRAC hardware status change detection or manual alert review
+- **Progression**: IDRAC issue detected → Backend processes change → Alert generated → Database stored → Frontend displays notification
+- **Success criteria**: All critical hardware issues from IDRAC generate immediate visible alerts with actionable information
 
-### Hardware Replacement Recommendations
-- **Functionality**: Analyzes disk health metrics to recommend proactive replacements
-- **Purpose**: Prevent unexpected hardware failures through predictive maintenance
-- **Trigger**: Health parameter threshold breach or manual health assessment
-- **Progression**: Health metrics analyzed → Risk assessment calculated → Recommendation generated → Timeline provided → Action plan suggested
-- **Success criteria**: System accurately identifies disks requiring replacement before failure occurs
+### Predictive Failure Analysis from SMART Data
+- **Functionality**: Analyzes actual SMART data and IDRAC sensor readings to recommend proactive replacements
+- **Purpose**: Prevent unexpected hardware failures through real predictive maintenance data
+- **Trigger**: SMART parameter threshold breach or temperature anomaly detection from IDRAC
+- **Progression**: IDRAC SMART data analyzed → Risk assessment calculated → Recommendation generated → Timeline provided → Maintenance scheduled
+- **Success criteria**: System accurately identifies disks requiring replacement before failure using real IDRAC data
 
 ## Edge Case Handling
 
-- **Connection Failures**: Display cached data with clear offline indicators and retry mechanisms
-- **Partial Data**: Show available information while clearly marking missing components
-- **API Timeouts**: Graceful degradation with manual refresh options and status explanations
-- **Invalid Responses**: Error boundaries with detailed logging and fallback display modes
-- **Rapid Status Changes**: Debounced updates to prevent UI flickering during hardware events
+- **IDRAC Connection Failures**: Display cached data with clear offline indicators, automatic retry logic, and manual reconnection options
+- **IDRAC Authentication Issues**: Graceful handling of credential failures with secure retry mechanisms and admin notifications
+- **Partial IDRAC Data**: Show available hardware information while clearly marking inaccessible components or sensors
+- **IDRAC API Timeouts**: Implement timeout handling with exponential backoff and fallback to last known status
+- **Network Connectivity Issues**: Detect network problems and provide clear status indicators with automatic recovery
+- **IDRAC Firmware Compatibility**: Handle different IDRAC API versions and provide compatibility warnings
+- **Concurrent Access**: Manage multiple user sessions without overwhelming IDRAC with requests
+- **Hardware Events During Polling**: Handle rapid hardware state changes without UI flickering or data inconsistency
+
+## Implementation Considerations
+
+### Security & Authentication
+- **IDRAC Credentials**: Secure storage and transmission of IDRAC login credentials
+- **Session Management**: Proper IDRAC session handling with automatic renewal
+- **Network Security**: TLS configuration for IDRAC communication
+- **Access Control**: Authentication for web interface access in production
+
+### Performance & Scalability
+- **API Efficiency**: Optimized IDRAC API calls to minimize server load
+- **Caching Strategy**: Intelligent caching of IDRAC data with appropriate TTL
+- **Error Recovery**: Robust error handling and automatic recovery mechanisms
+- **Resource Management**: Efficient memory and connection management for long-running service
+
+### Deployment & Configuration
+- **Environment Variables**: Configurable IDRAC connection parameters
+- **Docker Support**: Containerized deployment with docker-compose
+- **Health Monitoring**: Service health checks and monitoring endpoints
+- **Logging**: Comprehensive logging for troubleshooting and audit
 
 ## Design Direction
 
