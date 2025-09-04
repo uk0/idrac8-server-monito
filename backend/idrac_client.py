@@ -176,11 +176,11 @@ class IDRACRedfishClient:
 
     def get_sel_logs(self) -> Optional[Dict]:
         """Get System Event Log entries"""
-        return self._make_request("/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Sel/Entries")
+        return self._make_request("/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Sel",method="GET")
 
     def get_lc_logs(self) -> Optional[Dict]:
         """Get Lifecycle Controller log entries"""
-        return self._make_request("/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries")
+        return self._make_request("/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Lclog",method="GET")
 
 
 class IDRACHardwareMonitor:
@@ -405,7 +405,7 @@ class IDRACHardwareMonitor:
             # Get SEL (System Event Log) entries
             print("Fetching SEL logs...")
             sel_data = self.client.get_sel_logs()
-
+            print(sel_data)
             if sel_data and "Members" in sel_data:
                 print(f"Found {len(sel_data['Members'])} SEL entries")
 
@@ -415,7 +415,7 @@ class IDRACHardwareMonitor:
                     entry_type = str(entry.get("EntryType", "")).lower()
 
                     # Include critical, warning, and some informational alerts
-                    if severity in ["critical", "warning"] or entry_type == "alert":
+                    if severity in ["critical", "warning"] or entry_type == "sel" or entry_type == "alert":
                         alert = {
                             "id": entry.get("Id", str(len(alerts))),
                             "message": entry.get("Message", "Unknown alert"),
@@ -439,7 +439,7 @@ class IDRACHardwareMonitor:
             # Also try to get LC logs for additional alerts
             print("Fetching LC logs...")
             lc_data = self.client.get_lc_logs()
-
+            print(lc_data)
             if lc_data and "Members" in lc_data:
                 print(f"Found {len(lc_data['Members'])} LC log entries")
 
@@ -554,8 +554,8 @@ class IDRACHardwareMonitor:
 if __name__ == "__main__":
     # Test connection
     IDRAC_IP = "10.88.51.66"
-    USERNAME = "your_username"
-    PASSWORD = "your_password"
+    USERNAME = "root"
+    PASSWORD = "uh-WYoKv_p8zeM!t"
 
     try:
         print(f"Connecting to iDRAC at {IDRAC_IP}...")

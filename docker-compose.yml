@@ -2,30 +2,24 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: idracbackend:latest
     ports:
-      - "8080:8080"
+      - "8000:8000"
     environment:
       - IDRAC_HOST=10.88.51.66
-      - IDRAC_USERNAME=root
-      - IDRAC_PASSWORD=calvin
-      - SERVER_PORT=8080
+      - SERVER_PORT=8000
       - POLL_INTERVAL=300000
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
+    image: idracfrontend:latest
     ports:
-      - "3000:3000"
+      - "7780:7780"
     depends_on:
       - backend
     restart: unless-stopped

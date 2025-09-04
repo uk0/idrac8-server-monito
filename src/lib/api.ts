@@ -1,6 +1,6 @@
 import { ServerStatus } from '@/types/hardware';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = '/api';
 
 export class ServerAPI {
   private static instance: ServerAPI;
