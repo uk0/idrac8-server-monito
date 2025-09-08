@@ -1,4 +1,6 @@
 import os
+import re
+
 import requests
 import json
 import warnings
@@ -191,6 +193,17 @@ class IDRACHardwareMonitor:
     def __init__(self, idrac_client: IDRACRedfishClient):
         self.client = idrac_client
 
+    # 提取磁盘编号的函数
+    def extract_disk_numbers(self,drives):
+        disk_numbers = []
+        for drive in drives:
+            odata_id = drive.get("@odata.id", "")
+            # 使用正则表达式提取 Disk.Bay.X 中的 X
+            match = re.search(r"Disk\.Bay\.(\d+)", odata_id)
+            if match:
+                disk_numbers.append(int(match.group(1)))  # 将编号转换为整数
+        return disk_numbers
+
     def _normalize_status(self, redfish_status: dict) -> str:
         """Convert Redfish status to our standard format"""
         if not redfish_status:
@@ -288,7 +301,7 @@ class IDRACHardwareMonitor:
                 disk_details = self.client.get_physical_disk_details(disk_odata_id)
                 if not disk_details:
                     continue
-
+                # print("Disk details:", disk_details)
                 # Extract disk information
                 status = self._normalize_status(disk_details.get("Status", {}))
                 size_gb = self._convert_bytes_to_gb(disk_details.get("CapacityBytes", 0))
@@ -362,6 +375,8 @@ class IDRACHardwareMonitor:
                             if not volume_details:
                                 continue
 
+                            # print(f"Volume details: {volume_details}")
+
                             # Extract volume information
                             status = self._normalize_status(volume_details.get("Status", {}))
                             size_gb = self._convert_bytes_to_gb(volume_details.get("CapacityBytes", 0))
@@ -376,6 +391,7 @@ class IDRACHardwareMonitor:
                                 dell_data = volume_details["Oem"]["Dell"]
                                 if "DellVirtualDisk" in dell_data:
                                     raid_type = dell_data["DellVirtualDisk"].get("RAIDType", "Unknown")
+                            disk_numbers = self.extract_disk_numbers(volume_details['Links']['Drives'])
 
                             virtual_disk_info = {
                                 "id": volume_details.get("Id", volume_odata_id.split("/")[-1]),
@@ -386,6 +402,8 @@ class IDRACHardwareMonitor:
                                 "encrypted": volume_details.get("Encrypted", False),
                                 "optimumIOSize": volume_details.get("OptimumIOSizeBytes", "N/A"),
                                 "blockSizeBytes": volume_details.get("BlockSizeBytes", "N/A"),
+                                "drivesInfo": '/'.join(map(str, disk_numbers)),
+                                "drivesCount": str(volume_details['Links']['Drives@odata.count']),
                                 "lastUpdated": datetime.now().isoformat()
                             }
 
@@ -555,7 +573,7 @@ if __name__ == "__main__":
     # Test connection
     IDRAC_IP = "10.88.51.66"
     USERNAME = "root"
-    PASSWORD = "uh-WYoKv_p8zeM!t"
+    PASSWORD = "111111"
 
     try:
         print(f"Connecting to iDRAC at {IDRAC_IP}...")

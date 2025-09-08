@@ -8,7 +8,7 @@ class Config:
     # iDRAC configuration
     IDRAC_IP = os.getenv("IDRAC_IP", "10.88.51.66")
     IDRAC_USERNAME = os.getenv("IDRAC_USERNAME", "root")
-    IDRAC_PASSWORD = os.getenv("IDRAC_PASSWORD", "uh-WYoKv_p8zeM!t")
+    IDRAC_PASSWORD = os.getenv("IDRAC_PASSWORD", "1111")
     
     # API configuration
     API_HOST = os.getenv("API_HOST", "0.0.0.0")

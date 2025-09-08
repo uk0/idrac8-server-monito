@@ -21,6 +21,8 @@ export interface VirtualDisk {
   raidLevel: string;
   status: 'healthy' | 'warning' | 'critical' | 'failed' | 'offline' | 'unknown';
   size: string;
+  drivesInfo: string;
+  drivesCount: string;
   lastUpdated: string;
 }
 

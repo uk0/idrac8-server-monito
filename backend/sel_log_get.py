@@ -111,7 +111,7 @@ def main():
     # Read from environment or use defaults
     host = os.getenv("IDRAC_IP", "10.88.51.66")
     user = os.getenv("IDRAC_USER", "root")
-    pwd  = os.getenv("IDRAC_PASS", "uh-WYoKv_p8zeM!t")
+    pwd  = os.getenv("IDRAC_PASS", "1111")
 
     fetcher = IDRACSelFetcher(host, user, pwd)
     print(f"Connecting to iDRAC at {host} for SEL logs...")

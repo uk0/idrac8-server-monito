@@ -16,6 +16,8 @@ export function VirtualDiskCard({ disk }: VirtualDiskCardProps) {
     raidLevel: disk?.raidLevel || 'Unknown',
     status: disk?.status || 'unknown' as const,
     size: disk?.size || 'Unknown',
+    drivesInfo: disk?.drivesInfo || 'Unknown',
+    drivesCount: disk?.drivesCount || 'Unknown',
     lastUpdated: disk?.lastUpdated || new Date().toISOString()
   };
 
@@ -58,6 +60,17 @@ export function VirtualDiskCard({ disk }: VirtualDiskCardProps) {
           <div>
             <span className="text-muted-foreground">Total Size:</span>
             <p className="font-mono">{safeDisk.size}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-muted-foreground">RAID DeviceCount:</span>
+            <p className="font-mono font-medium">{safeDisk.drivesCount}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Device Number:</span>
+            <p className="font-mono">{safeDisk.drivesInfo}</p>
           </div>
         </div>
 
